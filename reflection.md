@@ -4,8 +4,14 @@
 
 **a. Initial design**
 
-- Briefly describe your initial UML design.
-- What classes did you include, and what responsibilities did you assign to each?
+The initial design centered on three core user actions: adding a pet, setting task priorities, and viewing the day's tasks. The UML draft included the following classes:
+
+- **Pet** — stores basic info about an animal (name, species, preferences) and holds the list of care tasks associated with it. Supports adding a new pet to the system.
+- **Task** — represents a single pet care task, including its title, duration, and priority level (low/medium/high). Priorities are set when a task is created or edited.
+- **Owner** — represents the pet owner and their collection of pets.
+- **Scheduler/Planner** — takes the pets' tasks and constraints (time, priority, preferences) and builds the day's schedule, so the user can see daily tasks in order along with the reasoning behind that order.
+
+Each class has a focused responsibility: `Pet` and `Owner` manage identity and ownership data, `Task` captures what needs to be done and how urgently, and the `Scheduler` is solely responsible for turning a set of tasks into an ordered daily plan.
 
 **b. Design changes**
 
