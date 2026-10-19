@@ -14,6 +14,7 @@ classDiagram
         -List~Task~ tasks
         +addTask(task: Task) void
         +getTasks() List~Task~
+        +markTaskComplete(task: Task) Task
     }
 
     class Task {
@@ -23,14 +24,21 @@ classDiagram
         -String frequency
         -String petName
         -boolean completed
+        -String time
+        -String dueDate
         +setPriority(priority: String) void
-        +markComplete() void
+        +markComplete() Task
     }
 
     class Scheduler {
         -List~Task~ taskQueue
         -Dict constraints
+        -String conflictWarning
         +buildSchedule(owner: Owner, constraints: Dict) List~Task~
+        +sortByTime() List~Task~
+        +filterTasks(completed: boolean, petName: String) List~Task~
+        +findConflicts(owner: Owner) List~List~Task~~
+        +explainConflicts(owner: Owner) String
         +explainPlan() String
     }
 

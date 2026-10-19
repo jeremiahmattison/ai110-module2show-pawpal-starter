@@ -84,14 +84,12 @@ Sample test output:
 
 ## 📐 Smarter Scheduling
 
-> Fill in once you've implemented scheduling logic.
-
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Task sorting | `Scheduler.sort_by_time()` | Sorts `task_queue` chronologically with `sorted(..., key=lambda task: task.time)`. Works directly on `"HH:MM"` strings since they're zero-padded, so no parsing into a `datetime` is needed. This is in addition to the priority sort `build_schedule()` already does (high → medium → low). |
+| Filtering | `Scheduler.filter_tasks(completed=None, pet_name=None)` | Returns tasks from `task_queue` matching completion status and/or pet name. Both filters are optional and combine with AND when both are given. |
+| Conflict handling | `Scheduler.find_conflicts(owner)`, `Scheduler.explain_conflicts(owner)` | Groups every pending task across *all* of the owner's pets by `(due_date, time)` in one O(n) pass and flags any group with 2+ tasks — catching both one pet double-booked and two different pets scheduled at once. Only exact `(due_date, time)` matches are flagged, not overlapping durations (a deliberate tradeoff — see `reflection.md` section 2b). `build_schedule()` runs this automatically via the internal `_check_for_conflicts()` and stores the result as a string on `scheduler.conflict_warning` (or `None`), so a conflict never crashes the program — it's just a warning the UI/CLI can choose to display. |
+| Recurring tasks | `Task.mark_complete()`, `Pet.mark_task_complete()` | Completing a `"daily"` or `"weekly"` task returns a fresh, incomplete clone of itself due `timedelta(days=1)` or `timedelta(weeks=1)` from *today* (not from the old due date, so a late completion still reschedules sensibly). `Pet.mark_task_complete()` is the method to call for this — it delegates to `task.mark_complete()` and adds whatever next-occurrence task comes back onto that pet's own task list, since `Task` itself has no way to reach back into its pet's list. |
 
 ## 📸 Demo Walkthrough
 

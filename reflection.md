@@ -32,8 +32,9 @@ Yes. While reviewing the UML against the class skeleton, I found two gaps and fi
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
+`Scheduler.find_conflicts()` only flags two tasks as conflicting when their `due_date` and `time` strings match *exactly* — it does not check whether their durations actually overlap. A 30-minute "Morning walk" at 07:00 and a 10-minute "Brushing" also at 07:00 get flagged (correct), but a 30-minute "Morning walk" at 07:00 and a 10-minute "Feeding" starting at 07:15 would not be flagged, even though the walk is still running when the feeding is supposed to start.
+
+I chose this on purpose: comparing exact `(due_date, time)` keys lets conflict detection stay a single O(n) pass with a dict (`groups.setdefault((due_date, time), []).append(task)`), while true overlap detection would mean parsing every `"HH:MM"` string into minutes, computing each task's `[start, start + duration)` interval, and comparing every pair within a day — a harder, more error-prone piece of logic for a feature that's meant to be a lightweight, non-blocking warning rather than a real calendar engine. For PawPal+'s actual use case — a pet owner skimming a short daily task list — catching the common case of "I told it to do two things at once" is more valuable than perfect overlap math, and the cost of the gap is low: a missed near-overlap just means the owner sees one less warning, not a broken schedule.
 
 ---
 
