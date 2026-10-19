@@ -15,8 +15,11 @@ Each class has a focused responsibility: `Pet` and `Owner` manage identity and o
 
 **b. Design changes**
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+Yes. While reviewing the UML against the class skeleton, I found two gaps and fixed both:
+
+- **Added `pet_name` to `Task`.** The original design had `Pet` hold a list of `Task`s but gave `Task` no way to reference its owner back. Once `Scheduler.build_schedule()` flattens tasks from multiple pets into a single list, that link would be lost — the daily plan output wouldn't know which pet each task belonged to. Adding `pet_name` to `Task` keeps that information attached to the task itself.
+- **Clarified the `Scheduler` ↔ `Pet` relationship.** The UML originally showed `Scheduler ..> Pet : reads`, but `build_schedule()` only ever takes a `List~Task~`, not `Pet` objects — the diagram didn't match the intended code. I removed that relationship and added `Owner ..> Scheduler : uses` instead, since it's the `Owner` that gathers tasks across its pets and asks the `Scheduler` to build a plan.
+- **Noted the `build_schedule()` / `explain_plan()` coupling.** `explain_plan()` takes no arguments, so it has to describe whatever `build_schedule()` most recently produced. I added comments to the stubs making explicit that `build_schedule()` is expected to store its result in `self.task_queue` so `explain_plan()` has something to describe.
 
 ---
 
@@ -38,13 +41,16 @@ Each class has a focused responsibility: `Pet` and `Owner` manage identity and o
 
 **a. How you used AI**
 
-- How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
-- What kinds of prompts or questions were most helpful?
+I used Claude Code across the whole pipeline: turning brainstormed class descriptions into the `uml.mmd` diagram, generating the Python class skeleton (`pawpal_system.py`), fleshing that skeleton into real scheduling logic, writing `main.py` as a runnable demo, writing the unit tests, and drafting README sections. The most useful prompt was asking it to review the design for "missing relationships or potential logic bottlenecks" before I moved from skeleton to real implementation — that single question surfaced a real mismatch between the diagram and the planned code (the UML showed `Scheduler` reading from `Pet` directly, but the method was only ever going to take a flat list of `Task`s, which would have silently lost the pet-to-task mapping once a schedule spanned multiple pets).
 
 **b. Judgment and verification**
 
-- Describe one moment where you did not accept an AI suggestion as-is.
-- How did you evaluate or verify what the AI suggested?
+I did not just accept the AI's claim that code "works" — I ran it myself after every change. Two concrete catches:
+
+- The first version of `Scheduler.build_schedule()` used the `dict | None` type-hint syntax. The AI's own smoke test used `python3` without checking which interpreter/version that was. When I ran it in this repo's actual environment (Python 3.9, per `python3 --version`), it crashed immediately with a `TypeError`, since that union syntax needs Python 3.10+. I had the AI add `from __future__ import annotations` and reran the script to confirm it worked before accepting the change.
+- When the test file was added, running plain `pytest` failed to import `diagrams.pawpal_system` (only `python -m pytest` worked), because bare `pytest` doesn't add the project root to `sys.path` the same way. Rather than accept "the tests pass" at face value, I asked for both invocation styles to be checked, which led to adding `conftest.py` so the import resolves consistently either way.
+
+In both cases, the fix itself came from the AI, but I didn't trust it until I'd re-run `main.py` and `pytest` myself and seen the actual output change.
 
 ---
 

@@ -4,6 +4,7 @@ classDiagram
         -List~Pet~ pets
         +addPet(pet: Pet) void
         +getPets() List~Pet~
+        +getAllTasks() List~Task~
     }
 
     class Pet {
@@ -16,9 +17,11 @@ classDiagram
     }
 
     class Task {
-        -String title
+        -String description
         -int durationMinutes
         -String priority
+        -String frequency
+        -String petName
         -boolean completed
         +setPriority(priority: String) void
         +markComplete() void
@@ -27,11 +30,11 @@ classDiagram
     class Scheduler {
         -List~Task~ taskQueue
         -Dict constraints
-        +buildSchedule(tasks: List~Task~, constraints: Dict) List~Task~
+        +buildSchedule(owner: Owner, constraints: Dict) List~Task~
         +explainPlan() String
     }
 
     Owner "1" --> "*" Pet : owns
     Pet "1" --> "*" Task : has
-    Scheduler ..> Pet : reads
+    Scheduler ..> Owner : reads
     Scheduler ..> Task : schedules

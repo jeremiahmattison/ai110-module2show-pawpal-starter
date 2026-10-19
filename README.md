@@ -22,6 +22,17 @@ Your final app should:
 - Display the plan clearly (and ideally explain the reasoning)
 - Include tests for the most important scheduling behaviors
 
+## Implementation Summary
+
+The core logic lives in [`diagrams/pawpal_system.py`](diagrams/pawpal_system.py) as four classes:
+
+- **`Task`** — a single care activity (`description`, `duration_minutes`, `priority`, `frequency`, `completed`, and the `pet_name` it belongs to). Can mark itself complete or change priority.
+- **`Pet`** — a pet's basic info (`name`, `species`, `preferences`) plus its own list of `Task`s. `add_task()` stamps each task with the pet's name so it can be traced back after tasks from multiple pets are combined.
+- **`Owner`** — holds a list of `Pet`s and exposes `get_all_tasks()`, which flattens every pet's tasks into one list. This is the single entry point the scheduler uses to see tasks across all pets, instead of looking at one pet at a time.
+- **`Scheduler`** — the "brain." `build_schedule(owner, constraints)` reads `owner.get_all_tasks()`, drops completed tasks, sorts the rest by priority, and (if an `available_minutes` constraint is given) keeps adding tasks until the time budget runs out. `explain_plan()` turns the stored result into a readable, numbered plan.
+
+`main.py` ties it together as a runnable demo: it builds an `Owner` with two `Pet`s, adds tasks with different durations/priorities, calls `build_schedule()`, and prints the plan via `explain_plan()` (see Sample Output below). `tests/test_pawpal.py` covers the two most important unit behaviors — marking a task complete, and a pet's task count increasing after `add_task()`.
+
 ## Getting started
 
 ### Setup
@@ -44,14 +55,15 @@ pip install -r requirements.txt
 
 ## 🖥️ Sample Output
 
-Paste a sample of your app's CLI or Streamlit output here so a reader can see what a generated plan looks like:
+Output from running `python main.py`:
 
 ```
-# e.g.:
-# Daily plan for Biscuit (Golden Retriever):
-#   08:00 — Morning walk (30 min) [priority: high]
-#   09:00 — Feeding (10 min) [priority: high]
-#   ...
+Today's Schedule
+=================
+Today's plan:
+1. Morning walk for Mochi (30 min, priority: high)
+2. Feeding for Mochi (10 min, priority: high)
+3. Litter box cleaning for Luna (5 min, priority: medium)
 ```
 
 ## 🧪 Testing PawPal+
