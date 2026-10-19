@@ -68,19 +68,33 @@ Today's plan:
 
 ## 🧪 Testing PawPal+
 
-```bash
-# Run the full test suite:
-pytest
+The suite in [`tests/test_pawpal.py`](tests/test_pawpal.py) covers the scheduling behaviors that matter most:
 
-# Run with coverage:
-pytest --cov
+- **Sorting correctness** — `sort_by_time()` returns tasks in chronological order.
+- **Recurrence logic** — completing a `"daily"` task schedules a new, incomplete task for the next day (and a `"once"` task returns no follow-up).
+- **Conflict detection** — `find_conflicts()`/`explain_conflicts()` flag tasks that share the same `(due_date, time)`, including across different pets, and correctly ignore same-time tasks on different dates.
+
+```bash
+python -m pytest
 ```
 
 Sample test output:
 
 ```
-# Paste your pytest output here
+================================================================ test session starts =================================================================
+platform darwin -- Python 3.12.7, pytest-7.4.4, pluggy-1.0.0
+rootdir: /Users/macbookpro/Desktop/AI110/ai110-module2show-pawpal-starter
+plugins: Faker-37.1.0, anyio-4.2.0
+collected 9 items                                                                                                                                    
+
+tests/test_pawpal.py .........                                                                                                                 [100%]
+
+================================================================= 9 passed in 0.28s ==================================================================
 ```
+
+**Confidence Level:** ⭐⭐⭐⭐☆ (4/5)
+
+The core scheduling behaviors — chronological sorting, recurrence, and conflict detection — all pass and cover both the happy path and key negative cases (e.g., same time on different dates correctly does *not* flag a conflict). Confidence isn't a full 5/5 because some areas remain untested: `build_schedule()`'s time-budget logic (e.g., `available_minutes` of 0 or a task too large to fit), `filter_tasks()`, and the known limitation that `find_conflicts()` only catches exact `(due_date, time)` matches, not overlapping durations (see `reflection.md` section 2b).
 
 ## 📐 Smarter Scheduling
 
