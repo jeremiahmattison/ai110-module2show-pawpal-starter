@@ -137,6 +137,12 @@ else:
                     )
                 else:
                     st.success("Completed!")
+
+        live_conflicts = scheduler.find_conflicts(owner)
+        if live_conflicts:
+            st.warning(scheduler.explain_conflicts(owner))
+        else:
+            st.success("No scheduling conflicts.")
     else:
         st.info("No tasks yet. Add one above.")
 
@@ -153,12 +159,53 @@ col1, col2 = st.columns(2)
 with col1:
     if st.button("Generate schedule"):
         scheduler.build_schedule(owner, constraints={"available_minutes": int(available_minutes)})
+        minutes_used = sum(task.duration_minutes for task in scheduler.task_queue)
+        st.success(
+            f"Schedule built: {len(scheduler.task_queue)} task(s), "
+            f"{minutes_used}/{int(available_minutes)} minutes used."
+        )
 with col2:
     if st.button("Sort by time"):
         scheduler.sort_by_time()
+        st.success("Tasks sorted chronologically.")
 
 if scheduler.task_queue:
     st.text(scheduler.explain_plan())
 
-if scheduler.conflict_warning:
-    st.warning(scheduler.conflict_warning)
+    st.caption("Filter the schedule below (uses `Scheduler.filter_tasks`).")
+    col1, col2 = st.columns(2)
+    with col1:
+        pet_filter = st.selectbox(
+            "Pet", ["All"] + [pet.name for pet in owner.get_pets()], key="pet_filter"
+        )
+    with col2:
+        status_filter = st.selectbox("Status", ["All", "Completed", "Incomplete"], key="status_filter")
+
+    completed_arg = {"Completed": True, "Incomplete": False}.get(status_filter)
+    pet_name_arg = None if pet_filter == "All" else pet_filter
+    filtered_tasks = scheduler.filter_tasks(completed=completed_arg, pet_name=pet_name_arg)
+
+    st.table(
+        [
+            {
+                "pet": task.pet_name,
+                "due_date": task.due_date,
+                "time": task.time,
+                "description": task.description,
+                "duration_minutes": task.duration_minutes,
+                "priority": task.priority,
+                "completed": task.completed,
+            }
+            for task in filtered_tasks
+        ]
+        if filtered_tasks
+        else []
+    )
+    if not filtered_tasks:
+        st.info("No tasks match this filter.")
+
+if scheduler.task_queue:
+    if scheduler.conflict_warning:
+        st.warning(scheduler.conflict_warning)
+    else:
+        st.success("No scheduling conflicts in this plan.")

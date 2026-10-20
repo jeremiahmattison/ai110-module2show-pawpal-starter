@@ -53,6 +53,20 @@ I did not just accept the AI's claim that code "works" — I ran it myself after
 
 In both cases, the fix itself came from the AI, but I didn't trust it until I'd re-run `main.py` and `pytest` myself and seen the actual output change.
 
+**c. AI Strategy**
+
+*Which features were most effective?*
+The biggest help was Claude actually reading my files before suggesting anything instead of just guessing. When I asked for tests or UI changes, it opened up `pawpal_system.py` and `app.py` first and based its suggestions on the real method signatures (like `find_conflicts()` returning a list of groups, not just true/false). That kept me from getting generic code that didn't actually match what I'd built. Being able to run `pytest` or `python main.py` right there and see real output in the same conversation also made it a lot faster to catch mistakes than copy-pasting code back and forth somewhere else.
+
+*An AI suggestion I rejected or modified:*
+While wiring the Streamlit UI up to the Scheduler, the easy move would've been to just call `build_schedule()` automatically every time the page reruns so the schedule and conflict warnings are always "live." I didn't want that — the whole point of having "Generate schedule" and "Sort by time" buttons is that the user explicitly triggers those actions, and quietly rebuilding the schedule in the background would make the buttons pointless and could reorder tasks the user didn't ask to reorder. So I kept schedule-building explicit (only on button click) and only made the conflict check itself live, since checking for conflicts doesn't change any state — it just tells you something.
+
+*How separate chat sessions helped:*
+I split the work into different chats by phase — one for the UML/class skeleton stage, one for the actual scheduling logic, and this one just for testing and polish. I started this chat by telling it straight up that it would only be about testing, and that kept it from trying to redesign decisions I'd already made — it just worked with what already existed. It also made it way easier to go back later and find exactly where a decision got made instead of scrolling through one giant chat covering everything at once.
+
+*Lead architect takeaway:*
+The main thing I learned is that even when the AI can write working code fast, I still have to be the one deciding what the system should actually do and why. Claude is good at implementing something once I describe it, and good at catching stuff like a broken sort or a missing edge case, but it doesn't know which tradeoffs actually matter for my scenario (like whether conflict detection needs to check overlapping durations or just exact time matches) unless I tell it. My job ended up being less "write every line myself" and more "decide what's correct, catch what doesn't fit, and make it explain its reasoning when something looks off."
+
 ---
 
 ## 4. Testing and Verification
